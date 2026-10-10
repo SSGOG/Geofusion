@@ -1,0 +1,6 @@
+{
+  "selected_method": "late_yolo_imu",
+  "selection_metric": "validation_f1_then_average_precision",
+  "test_set_status": "not_evaluated",
+  "late_fusion_rule": "equal_weight_visual_and_imu_probabilities"
+}

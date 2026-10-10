@@ -1,0 +1,109 @@
+{
+  "recordings": 102,
+  "rows": 616870,
+  "columns_per_recording": 45,
+  "class_counts": {
+    "Road anomaly": 97,
+    "Normal road": 5
+  },
+  "median_sampling_hz": 100.00000000000213,
+  "median_duration_seconds": 29.09,
+  "coordinate_bounds": {
+    "latitude_min": 24.361683554000003,
+    "latitude_max": 24.532969962,
+    "longitude_min": 88.522954102,
+    "longitude_max": 88.839153266
+  },
+  "available_columns": [
+    "seconds_elapsed",
+    "accelerometer_z",
+    "accelerometer_y",
+    "accelerometer_x",
+    "gravity_z",
+    "gravity_y",
+    "gravity_x",
+    "gyroscope_z",
+    "gyroscope_y",
+    "gyroscope_x",
+    "orientation_qz",
+    "orientation_qy",
+    "orientation_qx",
+    "orientation_qw",
+    "orientation_roll",
+    "orientation_pitch",
+    "orientation_yaw",
+    "magnetometer_z",
+    "magnetometer_y",
+    "magnetometer_x",
+    "compass_magneticBearing",
+    "barometer_relativeAltitude",
+    "barometer_pressure",
+    "location_verticalAccuracy",
+    "location_longitude",
+    "location_latitude",
+    "annotation_text",
+    "annotation_millisecond_press_duration",
+    "totalAcceleration_z",
+    "totalAcceleration_y",
+    "totalAcceleration_x",
+    "magnetometerUncalibrated_z",
+    "magnetometerUncalibrated_y",
+    "magnetometerUncalibrated_x",
+    "gyroscopeUncalibrated_z",
+    "gyroscopeUncalibrated_y",
+    "gyroscopeUncalibrated_x",
+    "accelerometerUncalibrated_z",
+    "accelerometerUncalibrated_y",
+    "accelerometerUncalibrated_x",
+    "GIS_Elevation",
+    "Temperature (\u00b0C)",
+    "Humidity (%)",
+    "Cloud Cover (%)",
+    "Wind Speed (km/h)"
+  ],
+  "modalities_present": {
+    "inertial": [
+      "totalAcceleration_x",
+      "totalAcceleration_y",
+      "totalAcceleration_z",
+      "gyroscope_x",
+      "gyroscope_y",
+      "gyroscope_z"
+    ],
+    "orientation_and_magnetometer": [
+      "orientation_qz",
+      "orientation_qy",
+      "orientation_qx",
+      "orientation_qw",
+      "orientation_roll",
+      "orientation_pitch",
+      "orientation_yaw",
+      "magnetometer_z",
+      "magnetometer_y",
+      "magnetometer_x",
+      "magnetometerUncalibrated_z",
+      "magnetometerUncalibrated_y",
+      "magnetometerUncalibrated_x"
+    ],
+    "geospatial": [
+      "location_latitude",
+      "location_longitude",
+      "GIS_Elevation"
+    ],
+    "weather": [
+      "Temperature (\u00b0C)",
+      "Humidity (%)",
+      "Cloud Cover (%)",
+      "Wind Speed (km/h)"
+    ],
+    "image_or_video": false
+  },
+  "raw_data_annotation_events": 688,
+  "raw_data_event_counts": {
+    "Bump": 396,
+    "Pothole": 292
+  },
+  "google_drive_video_link_files_found": 21,
+  "raw_data_location": "E:\\downloads_2\\Raw Data",
+  "class_labelling_note": "Class is derived from source archive membership; annotation_text is not used as a negative label."
+}

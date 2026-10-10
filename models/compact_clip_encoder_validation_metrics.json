@@ -1,0 +1,13 @@
+{
+  "model": "compact_3dcnn_3frame_96px",
+  "selection_split": "validation_only",
+  "device": "cuda",
+  "rows": 109,
+  "positive_rows": 51,
+  "accuracy": 0.46788990825688076,
+  "precision": 0.46788990825688076,
+  "recall": 1.0,
+  "f1": 0.6375,
+  "average_precision": 0.5883819351418395,
+  "roc_auc": 0.5652467883705207
+}

@@ -1,0 +1,5 @@
+Dataset,Total Rows,Pothole Count,Bump Count,Clean Road Rows,Temperature (°C),Humidity (%),Cloud Cover (%),Wind Speed (km/h)
+Combined,43425,2123,34395,6907,33,80,19,21
+Potholes Only,2123,2123,0,0,33,80,19,21
+Bumps Only,34395,0,34395,0,33,80,19,21
+All Anomalies,36518,2123,34395,0,33,80,19,21

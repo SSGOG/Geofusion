@@ -1,0 +1,27 @@
+{
+  "expo": {
+    "name": "GeoFusion",
+    "slug": "geofusion-mobile",
+    "version": "0.1.1",
+    "orientation": "portrait",
+    "userInterfaceStyle": "light",
+    "plugins": [
+      "onnxruntime-react-native",
+      [
+        "expo-camera",
+        {
+          "cameraPermission": "GeoFusion uses the camera to collect road-surface evidence for a proposed road event."
+        }
+      ],
+      [
+        "expo-location",
+        {
+          "locationWhenInUsePermission": "GeoFusion uses your location to show your position beside mapped road events."
+        }
+      ]
+    ],
+    "android": {
+      "package": "com.geofusion.mobile"
+    }
+  }
+}

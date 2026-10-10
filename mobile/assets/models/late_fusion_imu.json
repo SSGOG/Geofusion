@@ -1,0 +1,49 @@
+{
+  "schema_version": 1,
+  "selected_method": "late_yolo_imu",
+  "fusion": {
+    "rule": "equal_weight_yolo_and_imu_probabilities",
+    "candidate_threshold": 0.5
+  },
+  "imu": {
+    "feature_order": [
+      "imu_sampling_hz",
+      "linear_acc_rms_deviation_mps2",
+      "linear_acc_peak_deviation_mps2",
+      "linear_acc_jerk_rms_mps3",
+      "gyro_peak_radps"
+    ],
+    "imputer_median": [
+      100.00000000000212,
+      0.6451435591635212,
+      2.331498390068308,
+      63.37786982462657,
+      0.5170104739531943
+    ],
+    "scaler_mean": [
+      99.99999999999605,
+      0.6823618465160796,
+      2.5906092198721304,
+      68.79823578419668,
+      0.5805802672234646
+    ],
+    "scaler_scale": [
+      1.6904683299137622e-11,
+      0.30264896110800044,
+      1.4459027471119485,
+      31.132085721505366,
+      0.3261139329971005
+    ],
+    "positive_class_coefficients": [
+      0.2294061733416504,
+      -0.6783523490418001,
+      0.7895454561517052,
+      -0.3158128384740392,
+      0.9377307271708405
+    ],
+    "positive_class_intercept": 0.09856705299058266,
+    "input_overrides": {
+      "imu_sampling_hz": 100.0
+    }
+  }
+}

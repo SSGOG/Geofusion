@@ -1,0 +1,39 @@
+{
+  "method": "late_yolo_imu",
+  "selection": "selected_on_validation_before_test_evaluation",
+  "validation_comparison": {
+    "early_clip_imu": {
+      "rows": 109,
+      "positive_rows": 51,
+      "accuracy": 0.5963302752293578,
+      "precision": 0.5714285714285714,
+      "recall": 0.5490196078431373,
+      "f1": 0.56,
+      "average_precision": 0.7230222845859687,
+      "roc_auc": 0.6582150101419878
+    },
+    "late_yolo_imu": {
+      "rows": 109,
+      "positive_rows": 51,
+      "accuracy": 0.6330275229357798,
+      "precision": 0.6122448979591837,
+      "recall": 0.5882352941176471,
+      "f1": 0.6,
+      "average_precision": 0.7039042353394946,
+      "roc_auc": 0.6757944557133199
+    }
+  },
+  "test": {
+    "rows": 81,
+    "positive_rows": 45,
+    "accuracy": 0.6296296296296297,
+    "precision": 0.6595744680851063,
+    "recall": 0.6888888888888889,
+    "f1": 0.6739130434782609,
+    "average_precision": 0.7251367129740011,
+    "roc_auc": 0.6432098765432099
+  },
+  "test_set_status": "evaluated_once",
+  "test_definition": "annotated_road_event_vs_temporally_separated_candidate_normal_window",
+  "yolo_weights": "D:\\VScodefiles\\MAI\\models\\runs\\geofusion_yolo_cls_final\\weights\\best.pt"
+}

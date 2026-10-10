@@ -1,0 +1,6 @@
+{
+  "selected_method": "late_fusion",
+  "selection_metric": "validation_f1_then_average_precision",
+  "test_set_status": "not_evaluated_in_phase_4b",
+  "candidate_normal_limitation": "negative rows are temporally separated candidate-normal windows, not verified pristine road labels"
+}

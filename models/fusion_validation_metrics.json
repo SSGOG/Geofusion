@@ -1,0 +1,23 @@
+{
+  "selection_split": "validation_only",
+  "early_fusion": {
+    "rows": 109,
+    "positive_rows": 51,
+    "accuracy": 0.48623853211009177,
+    "precision": 0.45454545454545453,
+    "recall": 0.49019607843137253,
+    "f1": 0.4716981132075472,
+    "average_precision": 0.5321779629558624,
+    "roc_auc": 0.5409060175794456
+  },
+  "late_fusion": {
+    "rows": 109,
+    "positive_rows": 51,
+    "accuracy": 0.6330275229357798,
+    "precision": 0.6774193548387096,
+    "recall": 0.4117647058823529,
+    "f1": 0.5121951219512195,
+    "average_precision": 0.7128653248685256,
+    "roc_auc": 0.6926977687626775
+  }
+}
