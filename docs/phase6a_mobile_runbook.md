@@ -59,9 +59,10 @@ npx expo start --tunnel -c
 
 On the phone, follow this sequence:
 
-1. Tap **Start live detection** with the phone securely mounted and its rear camera facing the road.
-2. The app collects a rolling five-second IMU window. When an impact trigger is present, it samples a camera frame and submits the frame, sensor window, and current GPS automatically.
-3. A candidate that passes fusion is marked at the current GPS position and reported with its relative sensor-impact tier. The map refreshes around the phone position; a blue point marks the live phone location.
-4. Tap **Stop live detection** to end capture. If the latest mapped point is a false positive, tap **Remove latest**. The point disappears from the map while its record is retained as dismissed for later audit.
+1. Securely mount the phone with its rear camera facing the road. Have a passenger start and monitor the test; do not operate the phone while driving.
+2. Tap **Start live detection** and allow foreground camera and location access. The app obtains a fresh GPS fix and tracks foreground location while detection is active.
+3. The app collects a rolling five-second IMU window. At three-second intervals, when an impact trigger is present, it samples a camera frame and scores the frame and sensor window on-device using the latest GPS position.
+4. A candidate that passes fusion is marked at the current GPS position and reported with its relative sensor-impact tier. If Supabase or the API is unavailable, it is queued locally for retry.
+5. Tap **Stop live detection** to end capture. If the latest mapped point is a false positive, tap **Remove latest** and confirm. The point disappears from the map while its record is retained as dismissed for later audit. After a cloud refresh, this action targets the newest active event submitted by this phone.
 
-Do not operate the phone while driving. Capture evidence only with a passenger or when the vehicle is safely stationary. The resulting tier is a research prototype output, not a verified road-maintenance decision.
+This is an experimental road-anomaly prototype, not a guaranteed pothole detector. The visual model distinguishes annotated road events from candidate-normal road; it does not distinguish potholes from bumps. The fusion threshold and relative sensor-impact tier have not been established as a reliable, calibrated field-measurement system. Expect missed events and false positives; validate results against reviewed video and surveyed locations before using them for maintenance decisions or sharing them as authoritative reports.

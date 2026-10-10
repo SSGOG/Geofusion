@@ -12,7 +12,7 @@ import { cloudSyncEnabled, dismissCloudEvent, listCloudEvents, syncCloudEvent } 
 type FeatureCollection<T> = { features: T[] };
 type TimedValue = { timestamp: number; value: number };
 
-const API_URL = process.env.EXPO_PUBLIC_GEOFUSION_API_URL;
+const API_URL = process.env.EXPO_PUBLIC_GEOFUSION_API_URL?.trim().replace(/\/+$/, "");
 const SENSOR_WINDOW_MS = 5_000;
 const AUTO_CAPTURE_INTERVAL_MS = 3_000;
 const IMPACT_TRIGGER_MPS2 = 1.5;
@@ -102,6 +102,8 @@ export default function App() {
   const [cameraPermission, requestCameraPermission] = useCameraPermissions();
   const acceleration = useRef<TimedValue[]>([]);
   const gyroscope = useRef<TimedValue[]>([]);
+  const phoneLocationRef = useRef<PhoneLocation | null>(null);
+  const locationSubscription = useRef<Location.LocationSubscription | null>(null);
   const accelerationSubscription = useRef<ReturnType<typeof Accelerometer.addListener> | null>(null);
   const gyroscopeSubscription = useRef<ReturnType<typeof Gyroscope.addListener> | null>(null);
   const capturingRef = useRef(false);
@@ -179,8 +181,9 @@ export default function App() {
       if (!photo?.base64) throw new Error("Camera did not return an image.");
       const localScore = await scoreLateFusion(photo.base64, features);
       setMessage(`On-device fusion: vision ${localScore.visionProbability.toFixed(2)}, IMU ${localScore.imuProbability.toFixed(2)}, combined ${localScore.fusedProbability.toFixed(2)}.`);
-      if (!phoneLocation || localScore.fusedProbability < 0.5) return;
-      const event: QueuedLiveEvent = { id: `phone_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`, createdAt: new Date().toISOString(), event_type: "Road anomaly", latitude: phoneLocation.latitude, longitude: phoneLocation.longitude, image_base64: photo.base64, vision_probability: localScore.visionProbability, imu_probability: localScore.imuProbability, fused_probability: localScore.fusedProbability, impact_priority: impactPriority(features), ...features };
+      const location = phoneLocationRef.current;
+      if (!location || localScore.fusedProbability < 0.5) return;
+      const event: QueuedLiveEvent = { id: `phone_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`, createdAt: new Date().toISOString(), event_type: "Road anomaly", latitude: location.latitude, longitude: location.longitude, image_base64: photo.base64, vision_probability: localScore.visionProbability, imu_probability: localScore.imuProbability, fused_probability: localScore.fusedProbability, impact_priority: impactPriority(features), ...features };
       try {
         const result = await synchroniseEvent(event);
         if (result.mapped && result.event_id) {
@@ -199,19 +202,47 @@ export default function App() {
     } finally {
       autoCaptureInFlight.current = false;
     }
-  }, [phoneLocation]);
+  }, []);
 
   const startLiveDetection = useCallback(async () => {
     if (!await openCamera()) return;
+    try {
+      let permission = await Location.getForegroundPermissionsAsync();
+      if (permission.status !== "granted") permission = await Location.requestForegroundPermissionsAsync();
+      if (permission.status !== "granted") {
+        setCameraOpen(false);
+        Alert.alert("Location permission required", "Allow foreground location access to map detected road events at the vehicle's current position.");
+        return;
+      }
+      const current = await Location.getCurrentPositionAsync({ accuracy: Location.Accuracy.High });
+      const currentPosition = { latitude: current.coords.latitude, longitude: current.coords.longitude };
+      phoneLocationRef.current = currentPosition;
+      setPhoneLocation(currentPosition);
+      locationSubscription.current?.remove();
+      locationSubscription.current = await Location.watchPositionAsync(
+        { accuracy: Location.Accuracy.High, timeInterval: 1000, distanceInterval: 5 },
+        (position) => {
+          const nextPosition = { latitude: position.coords.latitude, longitude: position.coords.longitude };
+          phoneLocationRef.current = nextPosition;
+          setPhoneLocation(nextPosition);
+        },
+      );
+    } catch (error) {
+      setCameraOpen(false);
+      Alert.alert("Location unavailable", error instanceof Error ? error.message : "Unable to start live GPS tracking.");
+      return;
+    }
     startSensorCapture();
     setAutoDetecting(true);
     autoCaptureInterval.current = setInterval(() => void captureLiveEvent(), AUTO_CAPTURE_INTERVAL_MS);
-    setMessage("Live detection is active: scanning IMU impact windows and road frames automatically.");
+    setMessage("Live detection is active: scanning IMU impact windows and road frames automatically with live GPS.");
   }, [captureLiveEvent, openCamera, startSensorCapture]);
 
   const stopLiveDetection = useCallback(() => {
     if (autoCaptureInterval.current) clearInterval(autoCaptureInterval.current);
     autoCaptureInterval.current = null;
+    locationSubscription.current?.remove();
+    locationSubscription.current = null;
     stopSensorCapture();
     setCameraOpen(false);
     setAutoDetecting(false);
@@ -241,6 +272,13 @@ export default function App() {
     }
   }, [lastLiveEventId, lastQueuedEventId]);
 
+  const confirmDismissLastLiveEvent = useCallback(() => {
+    Alert.alert("Remove latest road event?", "It will be hidden from the active map. Its dismissed audit record will be retained.", [
+      { text: "Cancel", style: "cancel" },
+      { text: "Remove", style: "destructive", onPress: () => void dismissLastLiveEvent() },
+    ]);
+  }, [dismissLastLiveEvent]);
+
   const loadMapData = useCallback(async () => {
     if (!API_URL && !cloudSyncEnabled) {
       setLoading(false);
@@ -256,6 +294,7 @@ export default function App() {
           geometry: { coordinates: [event.longitude, event.latitude] },
           properties: { event_type: event.event_type, impact_priority: event.impact_priority, fused_probability: event.fused_probability },
         })));
+        setLastLiveEventId(cloudEvents.find((event) => event.canDismiss)?.event_id ?? null);
         setSegments([]);
         await syncPendingEvents();
         setMessage(`${cloudEvents.length} active GeoFusion cloud event${cloudEvents.length === 1 ? "" : "s"} loaded.`);
@@ -296,7 +335,9 @@ export default function App() {
       const permission = await Location.requestForegroundPermissionsAsync();
       if (permission.status !== "granted") return;
       const current = await Location.getCurrentPositionAsync({ accuracy: Location.Accuracy.Balanced });
-      setPhoneLocation({ latitude: current.coords.latitude, longitude: current.coords.longitude });
+      const currentPosition = { latitude: current.coords.latitude, longitude: current.coords.longitude };
+      phoneLocationRef.current = currentPosition;
+      setPhoneLocation(currentPosition);
       setMessage((previous) => `${previous} Current GPS: ${current.coords.latitude.toFixed(5)}, ${current.coords.longitude.toFixed(5)}.`);
     })().catch(() => Alert.alert("Location unavailable", "The map still works without phone location permission."));
   }, []);
@@ -304,6 +345,7 @@ export default function App() {
   useEffect(() => () => {
     accelerationSubscription.current?.remove();
     gyroscopeSubscription.current?.remove();
+    locationSubscription.current?.remove();
     if (autoCaptureInterval.current) clearInterval(autoCaptureInterval.current);
   }, []);
 
@@ -319,7 +361,7 @@ export default function App() {
       </View>
       <View style={styles.captureControls}>
         <Pressable accessibilityLabel={autoDetecting ? "Stop live detection" : "Start live detection"} style={[styles.captureButton, autoDetecting && styles.stopButton]} onPress={() => void (autoDetecting ? stopLiveDetection() : startLiveDetection())}><Text style={styles.buttonText}>{autoDetecting ? "Stop live detection" : "Start live detection"}</Text></Pressable>
-        {(lastLiveEventId || lastQueuedEventId) && <Pressable accessibilityLabel="Remove the latest road event" style={styles.removeButton} onPress={() => void dismissLastLiveEvent()}><Text style={styles.buttonText}>Remove latest</Text></Pressable>}
+        {(lastLiveEventId || lastQueuedEventId) && <Pressable accessibilityLabel="Remove the latest road event" style={styles.removeButton} onPress={confirmDismissLastLiveEvent}><Text style={styles.buttonText}>Remove latest</Text></Pressable>}
       </View>
       <View style={styles.footer}>
         {loading && <ActivityIndicator color="#1b5e20" />}

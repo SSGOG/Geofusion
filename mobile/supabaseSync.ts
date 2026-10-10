@@ -4,7 +4,9 @@ import { createClient } from "@supabase/supabase-js";
 
 import { QueuedLiveEvent } from "./eventQueue";
 
-const url = process.env.EXPO_PUBLIC_SUPABASE_URL;
+const url = process.env.EXPO_PUBLIC_SUPABASE_URL?.trim()
+  .replace(/\/+$/, "")
+  .replace(/\/rest\/v1$/i, "");
 const key = process.env.EXPO_PUBLIC_SUPABASE_PUBLISHABLE_KEY;
 const supabase = url && key ? createClient(url, key, {
   auth: { storage: AsyncStorage, autoRefreshToken: true, persistSession: true, detectSessionInUrl: false },
@@ -14,11 +16,13 @@ export const cloudSyncEnabled = Boolean(supabase);
 
 export type CloudRoadEvent = {
   event_id: string;
+  reporter_id: string;
   event_type: string;
   latitude: number;
   longitude: number;
   fused_probability: number;
   impact_priority: string;
+  canDismiss: boolean;
 };
 
 async function client() {
@@ -33,13 +37,19 @@ async function client() {
 
 export async function listCloudEvents() {
   const active = await client();
+  const { data: { session }, error: sessionError } = await active.auth.getSession();
+  if (sessionError) throw sessionError;
+  if (!session) throw new Error("The anonymous Supabase session is unavailable.");
   const { data, error } = await active.from("mobile_road_events")
-    .select("event_id,event_type,latitude,longitude,fused_probability,impact_priority")
+    .select("event_id,reporter_id,event_type,latitude,longitude,fused_probability,impact_priority")
     .eq("status", "active")
     .order("created_at", { ascending: false })
     .limit(500);
   if (error) throw error;
-  return (data ?? []) as CloudRoadEvent[];
+  return (data ?? []).map((event) => ({
+    ...event,
+    canDismiss: event.reporter_id === session.user.id,
+  })) as CloudRoadEvent[];
 }
 
 export async function syncCloudEvent(event: QueuedLiveEvent) {

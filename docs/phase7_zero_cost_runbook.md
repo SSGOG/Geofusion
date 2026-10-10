@@ -21,7 +21,7 @@ Expo Go cannot load the native ONNX runtime, so use the custom development build
 
 1. Configure `ANDROID_HOME` and `ANDROID_SDK_ROOT` to point to the local Android SDK. This project uses Android Platform 36, Build Tools 36.0.0, NDK 27.1.12297006 and CMake 3.22.1.
 2. Open PowerShell in `mobile\android` and build locally with `.\gradlew.bat :app:assembleRelease`.
-3. Share `mobile\android\app\build\outputs\apk\release\GeoFusion-0.1.1-test.apk` and its `.sha256.txt` checksum with invited Android testers. The package targets `com.geofusion.mobile`, supports Android API 24 and newer, and includes the on-device model. The current APK is debug-signed and for trusted sideloaded testing only; configure a private release keystore before public distribution or publishing to an app store.
+3. Share `mobile\android\app\build\outputs\apk\release\GeoFusion-0.1.2-test.apk` and its `.sha256.txt` checksum with invited Android testers. The package targets `com.geofusion.mobile`, supports Android API 24 and newer, and includes the on-device model. The current APK is debug-signed and for trusted sideloaded testing only; configure a private release keystore before public distribution or publishing to an app store.
 4. Testers should verify the downloaded file's SHA-256 checksum, allow installs from the app they use to open the APK, and install it. Do not uninstall an existing installation just to update it: uninstalling erases its local queued events. An update must use the same signing key; builds from a different debug keystore require uninstall/reinstall and can lose local data.
 5. For JavaScript/UI development, run `npx expo start --dev-client` from `mobile` and open the installed build. Rebuild after adding/changing native dependencies or Android configuration.
 
@@ -30,13 +30,15 @@ Do not use a hosted build unless you explicitly approve sending the project sour
 ## Controlled field test
 
 1. Keep the phone securely fixed in the vehicle and have a passenger operate the application where possible.
-2. Start live detection. It samples IMU data, takes a periodic road frame only after an impact trigger, computes late fusion locally and queues candidates if synchronisation fails.
+2. Start live detection. It tracks foreground GPS, samples IMU data, takes a road frame at three-second intervals only after an impact trigger, computes late fusion locally and queues candidates if synchronisation fails.
 3. Confirm the app shows a visual, IMU and combined probability. Do not interpret the current binary visual label as a verified pothole-versus-bump classification.
-4. Use **Remove latest** to dismiss either the newest queued candidate or newest mapped record when it is a false positive.
+4. Use **Remove latest** to dismiss either the newest queued candidate or newest active event submitted by this phone when it is a false positive. Confirm the prompt; dismissal hides the record from the active map but retains it for audit.
 5. Reconnect to the development API and refresh; queued records synchronise once and are removed from the phone queue.
 
 ## Phase 7C account handoff
 
-Create one Supabase Free project, enable anonymous sign-ins, and enable PostGIS in the `extensions` schema. Copy the contents of `sql/004_supabase_mobile_events.sql` into the Supabase SQL Editor and run it. Then copy `mobile/.env.example` to `mobile/.env` and set the project URL and publishable key. Never put a Supabase `service_role` key in the mobile application. The client lists up to 500 active cloud events and may insert or dismiss events owned by its anonymous identity. Road-segment aggregation is not mirrored into the cloud mobile table.
+Create one Supabase Free project, enable anonymous sign-ins, and enable PostGIS in the `extensions` schema. Copy the contents of `sql/004_supabase_mobile_events.sql` into the Supabase SQL Editor and run it. Then copy `mobile/.env.example` to `mobile/.env` and set the Supabase project URL (the root URL, not a URL ending in `/rest/v1`) and publishable key. Never put a Supabase `service_role` key in the mobile application. The client lists up to 500 active cloud events and may insert or dismiss events owned by its anonymous identity. Road-segment aggregation is not mirrored into the cloud mobile table.
+
+Live scoring is experimental and has no accuracy or no-error guarantee. The model labels candidates as generic road anomalies; it is not a validated pothole-versus-bump classifier. GPS and map-tile availability, lighting, phone mounting, vehicle suspension, road speed, and mobile connectivity can affect results. Use passenger-assisted, controlled field testing and review false positives and missed events before treating map results as authoritative.
 
 The schema requires row-level security. A phone receives an anonymous authenticated identity, may create and dismiss only its own events, and may read active map events. This is the correct access boundary for the field prototype; public reporting and anti-abuse controls are a later production concern.
